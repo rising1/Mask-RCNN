@@ -28,11 +28,11 @@ model = mrcnn.model.MaskRCNN(mode="inference",
                              model_dir=os.getcwd())
 
 # Load the weights into the model.
-model.load_weights(filepath="mask_rcnn_coco.h5", 
+model.load_weights(filepath="C:/Users/phfro/PycharmProjects/Mask-RCNN-TF2/weights/mask_rcnn_coco.h5",
                    by_name=True)
 
 # load the input image, convert it from BGR to RGB channel
-image = cv2.imread("sample_image.jpg")
+image = cv2.imread("C:/Users/phfro/PycharmProjects/Mask-RCNN-TF2/images/IMG_8402.jpeg")
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 # Perform a forward pass of the network to obtain the results
