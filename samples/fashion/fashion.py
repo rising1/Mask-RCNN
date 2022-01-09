@@ -121,6 +121,7 @@ class FashionDataset(utils.Dataset):
         annotations = json.load(open(os.path.join(dataset_dir, "via_data.json")))
         annotations = list(annotations.values())  # don't need the dict keys
 
+        print(a for a in annotations) #******************* little test **********************
 
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.
