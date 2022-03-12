@@ -92,7 +92,7 @@ model = mrcnn.model.MaskRCNN(mode='training',
                              model_dir='./', 
                              config=kangaroo_config)
 
-model.load_weights(filepath='mask_rcnn_coco.h5', 
+model.load_weights(filepath='../mask_rcnn_coco.h5',
                    by_name=True, 
                    exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",  "mrcnn_bbox", "mrcnn_mask"])
 

@@ -38,6 +38,7 @@ class ShapesConfig(Config):
     """
     # Give the configuration a recognizable name
     NAME = "shapes"
+    # NAME = "shapes"
 
     # Train on 1 GPU and 8 images per GPU. We can put multiple images on each
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
@@ -266,8 +267,8 @@ model = modellib.MaskRCNN(mode="inference",
 
 # Get path to saved weights
 # Either set a specific path or find last trained weights
-# model_path = os.path.join(ROOT_DIR, ".h5 file name here")
-model_path = model.find_last()
+model_path = os.path.join(ROOT_DIR, "logs/mask_rcnn_shapes_0001.h5")
+# model_path = model.find_last()
 
 # Load trained weights
 print("Loading weights from ", model_path)
