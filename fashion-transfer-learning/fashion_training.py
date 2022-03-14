@@ -5,6 +5,7 @@ from numpy import zeros, asarray
 import mrcnn.utils
 import mrcnn.config
 import mrcnn.model
+import json
 
 class FashionDataset(mrcnn.utils.Dataset):
 
@@ -16,7 +17,7 @@ class FashionDataset(mrcnn.utils.Dataset):
         annotations_dir = dataset_dir + '/annots/'
 
         for filename in os.listdir(images_dir):
-            image_id = filename[:-4]
+            image_id = filename[:-5]
 
             if is_train and int(image_id) >= 150:
                 continue
@@ -64,33 +65,33 @@ class FashionDataset(mrcnn.utils.Dataset):
         height = int(root.find('.//size/height').text)
         return boxes, width, height
 
-class KangarooConfig(mrcnn.config.Config):
-    NAME = "kangaroo_cfg"
+class FashionConfig(mrcnn.config.Config):
+    NAME = "fashion_cfg"
 
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
     
-    NUM_CLASSES = 2
+    NUM_CLASSES = 9
 
     STEPS_PER_EPOCH = 131
 
 # Train
-train_dataset = KangarooDataset()
-train_dataset.load_dataset(dataset_dir='kangaroo', is_train=True)
+train_dataset = FashionDataset()
+train_dataset.load_dataset(dataset_dir='fashion', is_train=True)
 train_dataset.prepare()
 
 # Validation
-validation_dataset = KangarooDataset()
-validation_dataset.load_dataset(dataset_dir='kangaroo', is_train=False)
+validation_dataset = FashionDataset()
+validation_dataset.load_dataset(dataset_dir='fashion', is_train=False)
 validation_dataset.prepare()
 
 # Model Configuration
-kangaroo_config = KangarooConfig()
+fashion_config = FashionConfig()
 
 # Build the Mask R-CNN Model Architecture
 model = mrcnn.model.MaskRCNN(mode='training', 
                              model_dir='./', 
-                             config=kangaroo_config)
+                             config=fashion_config)
 
 model.load_weights(filepath='../mask_rcnn_coco.h5',
                    by_name=True, 
@@ -98,9 +99,9 @@ model.load_weights(filepath='../mask_rcnn_coco.h5',
 
 model.train(train_dataset=train_dataset, 
             val_dataset=validation_dataset, 
-            learning_rate=kangaroo_config.LEARNING_RATE, 
+            learning_rate=fashion_config.LEARNING_RATE,
             epochs=1, 
             layers='heads')
 
-model_path = 'Kangaro_mask_rcnn_trained.h5'
+model_path = 'Fashion_mask_rcnn_trained.h5'
 model.keras_model.save_weights(model_path)
