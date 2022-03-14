@@ -64,7 +64,7 @@ class FashionConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 1
+    IMAGES_PER_GPU = 2
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 9  # Background + [blouse, crop-top, jeans, dress, jumper, shorts, skirt, trousers, t-shirt]
@@ -82,12 +82,12 @@ class FashionConfig(Config):
 
 class FashionDataset(utils.Dataset):
 
-    def load_fashion(self, dataset_dir, subset):
-        """Load a subset of the Balloon dataset.
+    def load_dataset(self, dataset_dir, subset):
+        """Load a subset of the Fashion dataset.
         dataset_dir: Root directory of the dataset.
         subset: Subset to load: train or val
         """
-        # Add classes. We have only one class to add.
+        # Add classes. We have only nine class to add.
         self.add_class("blouse", 1, "blouse")
         self.add_class("crop-top", 2, "crop-top")
         self.add_class("jeans", 3, "jeans")
