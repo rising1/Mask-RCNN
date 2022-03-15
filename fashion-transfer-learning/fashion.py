@@ -82,7 +82,7 @@ class FashionConfig(Config):
 
 class FashionDataset(utils.Dataset):
 
-    def load_dataset(self, dataset_dir, subset):
+    def load_fashion(self, dataset_dir, subset):
         """Load a subset of the Fashion dataset.
         dataset_dir: Root directory of the dataset.
         subset: Subset to load: train or val
@@ -99,8 +99,9 @@ class FashionDataset(utils.Dataset):
         self.add_class("t-shirt", 9, "t-shirt")
 
         # Train or validation dataset?
-        assert subset in ["train", "val"]
-        dataset_dir = os.path.join(dataset_dir, subset)
+        # assert subset in ["train", "val"]
+        # dataset_dir = os.path.join(dataset_dir, subset)
+
 
         # Load annotations
         # VGG Image Annotator (up to version 1.6) saves each image in the form:
@@ -381,7 +382,9 @@ if __name__ == '__main__':
             "mrcnn_class_logits", "mrcnn_bbox_fc",
             "mrcnn_bbox", "mrcnn_mask"])
     else:
-        model.load_weights(weights_path, by_name=True)
+        model.load_weights(weights_path, by_name=True, exclude=[
+            "mrcnn_class_logits", "mrcnn_bbox_fc",
+            "mrcnn_bbox", "mrcnn_mask"])
 
     # Train or evaluate
     if args.command == "train":
