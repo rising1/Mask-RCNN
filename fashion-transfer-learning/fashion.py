@@ -99,8 +99,8 @@ class FashionDataset(utils.Dataset):
         self.add_class("t-shirt", 9, "t-shirt")
 
         # Train or validation dataset?
-        # assert subset in ["train", "val"]
-        # dataset_dir = os.path.join(dataset_dir, subset)
+        assert subset in ["train", "val"]
+        dataset_dir = os.path.join(dataset_dir, subset)
 
 
         # Load annotations
@@ -120,23 +120,10 @@ class FashionDataset(utils.Dataset):
         # We mostly care about the x and y coordinates of each region
         # Note: In VIA 2.0, regions was changed from a dict to a list.
         annotations = json.load(open(os.path.join(dataset_dir, "via_data.json")))
-
-        print("annotations keys__ ", annotations.keys())
-
-        print(utils.json_extract(annotations, '_via_img_metadata'))
-
-
-        # annotations = list(annotations.values())  # don't need the dict keys
-
-        # print("For the second time *****************************************************************************")
-
-        # print("annotations ", annotations)
+        annotations = list(annotations.values())  # don't need the dict keys
 
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.
-
-        # print(annotations['regions'])
-
         annotations = [a for a in annotations if a['regions']]
 
 
