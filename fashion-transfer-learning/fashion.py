@@ -120,38 +120,29 @@ class FashionDataset(utils.Dataset):
         # We mostly care about the x and y coordinates of each region
         # Note: In VIA 2.0, regions was changed from a dict to a list.
         annotations = json.load(open(os.path.join(dataset_dir, "via_data.json")))
-        annotations = list(annotations.values())  # don't need the dict keys
+        # annotations = list(annotations.values())  # don't need the dict keys
 
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.
-        annotations = [a for a in annotations if a['regions']]
+        # annotations = [a for a in annotations if a['_via_img_metadata']]
 
-
-
-        # Add images
-        for a in annotations:
-            # Get the x, y coordinaets of points of the polygons that make up
-            # the outline of each object instance. These are stores in the
-            # shape_attributes (see json format above)
-            # The if condition is needed to support VIA versions 1.x and 2.x.
-            if type(a['regions']) is dict:
-                polygons = [r['shape_attributes'] for r in a['regions'].values()]
-            else:
-                polygons = [r['shape_attributes'] for r in a['regions']] 
-
-            # load_mask() needs the image size to convert polygons to masks.
-            # Unfortunately, VIA doesn't include it in JSON, so we must read
-            # the image. This is only managable since the dataset is tiny.
-            image_path = os.path.join(dataset_dir, a['filename'])
-            image = skimage.io.imread(image_path)
-            height, width = image.shape[:2]
-
-            self.add_image(
-                "fashion",
-                image_id=a['filename'],  # use file name as a unique image id
-                path=image_path,
-                width=width, height=height,
-                polygons=polygons)
+        for i in annotations['_via_img_metadata']:
+            for j in annotations['_via_img_metadata'][i]['regions']:
+                polygons = [j['shape_attributes']['all_points_x'],j['shape_attributes']['all_points_y']]
+                print ("polygons= ", polygons, " filename ",annotations['_via_img_metadata'][i]['filename'])
+                # Add images
+                # load_mask() needs the image size to convert polygons to masks.
+                # Unfortunately, VIA doesn't include it in JSON, so we must read
+                # the image. This is only managable since the dataset is tiny.
+                image_path = os.path.join(dataset_dir, annotations['_via_img_metadata'][i]['filename'])
+                image = skimage.io.imread(image_path)
+                height, width = image.shape[:2]
+                self.add_image(
+                    "fashion",
+                    image_id=annotations['_via_img_metadata'][i]['filename'],  # use file name as a unique image id
+                    path=image_path,
+                    width=width, height=height,
+                    polygons=polygons)
 
     def load_mask(self, image_id):
         """Generate instance masks for an image.
@@ -172,7 +163,7 @@ class FashionDataset(utils.Dataset):
                         dtype=np.uint8)
         for i, p in enumerate(info["polygons"]):
             # Get indexes of pixels inside the polygon and set them to 1
-            rr, cc = skimage.draw.polygon(p['all_points_y'], p['all_points_x'])
+            rr, cc = skimage.draw.polygon(p[1], p[0])
             mask[rr, cc, i] = 1
 
         # Return mask, and array of class IDs of each instance. Since we have
