@@ -133,33 +133,25 @@ class FashionDataset(utils.Dataset):
             # the outline of each object instance. There are stores in the
             # shape_attributes (see json format above)
             polygons = [r['shape_attributes'] for r in a['regions']]
-            for i in data:
-                single_object = i['file_attributes']['caption']
-                if single_object > '':
-                    object.append( i['file_attributes']['caption'])
-            print("object:", object)
+            objects = a['file_attributes']['caption']
+            print("object:", objects)
             #name_dict = {"blouse": 1, "crop-top": 2, "jeans": 3, "dress": 4,
             #             "jumper":5, "shorts":6, "skirt":7, "trousers":8,
             #             "t-shirt":9}
-            name_dict = {"crop-top": 1, "shorts": 2, "trousers": 3}
-            # key = tuple(name_dict)
-            num_ids = [name_dict[a] for a in object]
-
             # num_ids = [int(n['Event']) for n in objects]
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
             # the image. This is only managable since the dataset is tiny.
-            print("numids", num_ids)
+
             image_path = os.path.join(dataset_dir, a['filename'])
             image = skimage.io.imread(image_path)
             height, width = image.shape[:2]
             self.add_image(
-                    "object",  ## for a single class just add the name here
+                    objects,  ## for a single class just add the name here
                     image_id=a['filename'],  # use file name as a unique image id
                     path=image_path,
                     width=width, height=height,
-                    polygons=polygons,
-                    num_ids=num_ids)
+                    polygons=polygons)
 
 
     def load_mask(self, image_id):
