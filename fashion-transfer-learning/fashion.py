@@ -60,7 +60,7 @@ class FashionConfig(Config):
     Derives from the base Config class and overrides some values.
     """
     # Give the configuration a recognizable name
-    NAME = "fashion"
+    NAME = "object"
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
@@ -119,30 +119,48 @@ class FashionDataset(utils.Dataset):
         # }
         # We mostly care about the x and y coordinates of each region
         # Note: In VIA 2.0, regions was changed from a dict to a list.
-        annotations = json.load(open(os.path.join(dataset_dir, "via_data.json")))
-        # annotations = list(annotations.values())  # don't need the dict keys
+        data = json.load(open(os.path.join(dataset_dir, "via_data_edited.json")))
+        data = list(data.values())  # don't need the dict keys
 
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.
-        # annotations = [a for a in annotations if a['_via_img_metadata']]
+        annotations = [a for a in data if a['regions']]
+        object = []
+        # Add images
+        for a in annotations:
+            print(a)
+            # Get the x, y coordinates of points of the polygons that make up
+            # the outline of each object instance. There are stores in the
+            # shape_attributes (see json format above)
+            polygons = [r['shape_attributes'] for r in a['regions']]
+            for i in data:
+                single_object = i['file_attributes']['caption']
+                if single_object > '':
+                    object.append( i['file_attributes']['caption'])
+            print("object:", object)
+            #name_dict = {"blouse": 1, "crop-top": 2, "jeans": 3, "dress": 4,
+            #             "jumper":5, "shorts":6, "skirt":7, "trousers":8,
+            #             "t-shirt":9}
+            name_dict = {"crop-top": 1, "shorts": 2, "trousers": 3}
+            # key = tuple(name_dict)
+            num_ids = [name_dict[a] for a in object]
 
-        for i in annotations['_via_img_metadata']:
-            for j in annotations['_via_img_metadata'][i]['regions']:
-                polygons = [j['shape_attributes']['all_points_x'],j['shape_attributes']['all_points_y']]
-                print ("polygons= ", polygons, " filename ",annotations['_via_img_metadata'][i]['filename'])
-                # Add images
-                # load_mask() needs the image size to convert polygons to masks.
-                # Unfortunately, VIA doesn't include it in JSON, so we must read
-                # the image. This is only managable since the dataset is tiny.
-                image_path = os.path.join(dataset_dir, annotations['_via_img_metadata'][i]['filename'])
-                image = skimage.io.imread(image_path)
-                height, width = image.shape[:2]
-                self.add_image(
-                    "fashion",
-                    image_id=annotations['_via_img_metadata'][i]['filename'],  # use file name as a unique image id
+            # num_ids = [int(n['Event']) for n in objects]
+            # load_mask() needs the image size to convert polygons to masks.
+            # Unfortunately, VIA doesn't include it in JSON, so we must read
+            # the image. This is only managable since the dataset is tiny.
+            print("numids", num_ids)
+            image_path = os.path.join(dataset_dir, a['filename'])
+            image = skimage.io.imread(image_path)
+            height, width = image.shape[:2]
+            self.add_image(
+                    "object",  ## for a single class just add the name here
+                    image_id=a['filename'],  # use file name as a unique image id
                     path=image_path,
                     width=width, height=height,
-                    polygons=polygons)
+                    polygons=polygons,
+                    num_ids=num_ids)
+
 
     def load_mask(self, image_id):
         """Generate instance masks for an image.
@@ -151,29 +169,35 @@ class FashionDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
-        # If not a fashion dataset image, delegate to parent class.
+        # If not a bottle dataset image, delegate to parent class.
         image_info = self.image_info[image_id]
-        if image_info["source"] != "fashion":
+        if image_info["source"] != "object":
             return super(self.__class__, self).load_mask(image_id)
 
         # Convert polygons to a bitmap mask of shape
         # [height, width, instance_count]
         info = self.image_info[image_id]
+        if info["source"] != "object":
+            return super(self.__class__, self).load_mask(image_id)
+        num_ids = info['num_ids']
         mask = np.zeros([info["height"], info["width"], len(info["polygons"])],
                         dtype=np.uint8)
         for i, p in enumerate(info["polygons"]):
             # Get indexes of pixels inside the polygon and set them to 1
-            rr, cc = skimage.draw.polygon(p[1], p[0]) # this is a problem
-            mask[rr, cc, i] = 1
+        	rr, cc = skimage.draw.polygon(p['all_points_y'], p['all_points_x'])
+
+        	mask[rr, cc, i] = 1
 
         # Return mask, and array of class IDs of each instance. Since we have
         # one class ID only, we return an array of 1s
-        return mask.astype(np.bool), np.ones([mask.shape[-1]], dtype=np.int32)
+        # Map class names to class IDs.
+        num_ids = np.array(num_ids, dtype=np.int32)
+        return mask, num_ids
 
     def image_reference(self, image_id):
         """Return the path of the image."""
         info = self.image_info[image_id]
-        if info["source"] == "balloon":
+        if info["source"] == "object":
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
@@ -198,7 +222,7 @@ def train(model):
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=30,
+                epochs=10,
                 layers='heads')
 
 
@@ -283,13 +307,13 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Train Mask R-CNN to detect balloons.')
+        description='Train Mask R-CNN to detect fashion.')
     parser.add_argument("command",
                         metavar="<command>",
                         help="'train' or 'splash'")
     parser.add_argument('--dataset', required=False,
-                        metavar="/path/to/balloon/dataset/",
-                        help='Directory of the Balloon dataset')
+                        metavar="/path/to/fashion/dataset/",
+                        help='Directory of the fashion dataset')
     parser.add_argument('--weights', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
