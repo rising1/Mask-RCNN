@@ -653,7 +653,7 @@
         }
       ],
       "file_attributes": {
-        "caption": "trousers\n",
+        "caption": "trousers",
         "public_domain": "no",
         "image_url": ""
       }

@@ -60,11 +60,12 @@ class FashionConfig(Config):
     Derives from the base Config class and overrides some values.
     """
     # Give the configuration a recognizable name
-    NAME = "object"
+    NAME = "fashion"
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    GPU_COUNT = 1
+    IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 9  # Background + [blouse, crop-top, jeans, dress, jumper, shorts, skirt, trousers, t-shirt]
@@ -88,20 +89,19 @@ class FashionDataset(utils.Dataset):
         subset: Subset to load: train or val
         """
         # Add classes. We have only nine class to add.
-        self.add_class("blouse", 1, "blouse")
-        self.add_class("crop-top", 2, "crop-top")
-        self.add_class("jeans", 3, "jeans")
-        self.add_class("dress", 4, "dress")
-        self.add_class("jumper", 5, "jumper")
-        self.add_class("shorts", 6, "shorts")
-        self.add_class("skirt", 7, "skirt")
-        self.add_class("trousers", 8, "trousers")
-        self.add_class("t-shirt", 9, "t-shirt")
+        self.add_class("dataset", 1, "blouse")
+        self.add_class("dataset", 2, "crop-top")
+        self.add_class("dataset", 3, "jeans")
+        self.add_class("dataset", 4, "dress")
+        self.add_class("dataset", 5, "jumper")
+        self.add_class("dataset", 6, "shorts")
+        self.add_class("dataset", 7, "skirt")
+        self.add_class("dataset", 8, "trousers")
+        self.add_class("dataset", 9, "t-shirt")
 
         # Train or validation dataset?
         assert subset in ["train", "val"]
         dataset_dir = os.path.join(dataset_dir, subset)
-
 
         # Load annotations
         # VGG Image Annotator (up to version 1.6) saves each image in the form:
@@ -125,20 +125,21 @@ class FashionDataset(utils.Dataset):
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.
         annotations = [a for a in data if a['regions']]
-        object = []
+
         # Add images
         for a in annotations:
-            print(a)
+            self.fashion_class_ids =[]
             # Get the x, y coordinates of points of the polygons that make up
             # the outline of each object instance. There are stores in the
             # shape_attributes (see json format above)
             polygons = [r['shape_attributes'] for r in a['regions']]
-            objects = a['file_attributes']['caption']
-            print("object:", objects)
+            self.fashion_class_id = [x['id'] for x in self.class_info if x['name'] == a['file_attributes']['caption']][0]
+            self.fashion_class_ids.append(self.fashion_class_id)
             #name_dict = {"blouse": 1, "crop-top": 2, "jeans": 3, "dress": 4,
             #             "jumper":5, "shorts":6, "skirt":7, "trousers":8,
             #             "t-shirt":9}
             # num_ids = [int(n['Event']) for n in objects]
+
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
             # the image. This is only managable since the dataset is tiny.
@@ -147,11 +148,12 @@ class FashionDataset(utils.Dataset):
             image = skimage.io.imread(image_path)
             height, width = image.shape[:2]
             self.add_image(
-                    objects,  ## for a single class just add the name here
+                    "dataset",  ## for a single class just add the name here
                     image_id=a['filename'],  # use file name as a unique image id
                     path=image_path,
                     width=width, height=height,
-                    polygons=polygons)
+                    polygons=polygons,
+                    class_ids=self.fashion_class_ids)
 
 
     def load_mask(self, image_id):
@@ -162,16 +164,18 @@ class FashionDataset(utils.Dataset):
         class_ids: a 1D array of class IDs of the instance masks.
         """
         # If not a bottle dataset image, delegate to parent class.
-        image_info = self.image_info[image_id]
-        if image_info["source"] != "object":
-            return super(self.__class__, self).load_mask(image_id)
+        #image_info = self.image_info[image_id]
+        #if image_info["source"] != "object":
+        #    return super(self.__class__, self).load_mask(image_id)
 
         # Convert polygons to a bitmap mask of shape
         # [height, width, instance_count]
+
+        num_ids = list()
         info = self.image_info[image_id]
-        if info["source"] != "object":
-            return super(self.__class__, self).load_mask(image_id)
-        num_ids = info['num_ids']
+        #if info["source"] != "object":
+        #    return super(self.__class__, self).load_mask(image_id)
+        # num_ids = info['num_ids']
         mask = np.zeros([info["height"], info["width"], len(info["polygons"])],
                         dtype=np.uint8)
         for i, p in enumerate(info["polygons"]):
@@ -183,6 +187,7 @@ class FashionDataset(utils.Dataset):
         # Return mask, and array of class IDs of each instance. Since we have
         # one class ID only, we return an array of 1s
         # Map class names to class IDs.
+        num_ids = info["class_ids"]
         num_ids = np.array(num_ids, dtype=np.int32)
         return mask, num_ids
 
