@@ -133,7 +133,10 @@ class FashionDataset(utils.Dataset):
             # the outline of each object instance. There are stores in the
             # shape_attributes (see json format above)
             polygons = [r['shape_attributes'] for r in a['regions']]
-            self.fashion_class_id = [x['id'] for x in self.class_info if x['name'] == a['file_attributes']['caption']][0]
+            #self.fashion_class_id = [x['id'] for x in self.class_info
+            #                     if x['name'] == a['file_attributes']['caption']][0]
+            self.fashion_class_id = [x['id'] for x in self.class_info
+                                 if x['name'] == r['region_attributes']['name'] for r in a['regions']][0]
             self.fashion_class_ids.append(self.fashion_class_id)
             #name_dict = {"blouse": 1, "crop-top": 2, "jeans": 3, "dress": 4,
             #             "jumper":5, "shorts":6, "skirt":7, "trousers":8,
