@@ -135,9 +135,11 @@ class FashionDataset(utils.Dataset):
             polygons = [r['shape_attributes'] for r in a['regions']]
             #self.fashion_class_id = [x['id'] for x in self.class_info
             #                     if x['name'] == a['file_attributes']['caption']][0]
-            self.fashion_class_id = [x['id'] for x in self.class_info
-                                 if x['name'] == r['region_attributes']['name'] for r in a['regions']][0]
-            self.fashion_class_ids.append(self.fashion_class_id)
+            tempobject = [r['region_attributes']['name'] for r in a['regions']]
+            for item_name in tempobject:
+                self.fashion_class_id = [x['id'] for x in self.class_info
+                            if x['name'] == item_name]
+                self.fashion_class_ids.append(self.fashion_class_id)
             #name_dict = {"blouse": 1, "crop-top": 2, "jeans": 3, "dress": 4,
             #             "jumper":5, "shorts":6, "skirt":7, "trousers":8,
             #             "t-shirt":9}
@@ -156,7 +158,7 @@ class FashionDataset(utils.Dataset):
                     path=image_path,
                     width=width, height=height,
                     polygons=polygons,
-                    class_ids=self.fashion_class_ids)
+                    class_ids=np.array(self.fashion_class_ids).flatten())
 
 
     def load_mask(self, image_id):
