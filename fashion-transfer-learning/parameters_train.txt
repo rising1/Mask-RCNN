@@ -1,0 +1,5 @@
+train
+--dataset
+./fashion/
+--weights
+C:/Users/phfro/PycharmProjects/Mask-RCNN/mask_rcnn_coco.h5
