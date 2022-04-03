@@ -119,8 +119,14 @@ class FashionDataset(utils.Dataset):
         # }
         # We mostly care about the x and y coordinates of each region
         # Note: In VIA 2.0, regions was changed from a dict to a list.
-        data = json.load(open(os.path.join(dataset_dir, "via_data_edited.json")))
+
+        #data = json.load(open(os.path.join(dataset_dir, "via_data_edited.json")))
+        #data = list(data.values())  # don't need the dict keys
+
+        data = json.load(open(os.path.join(dataset_dir, "via_data.json")))
         data = list(data.values())  # don't need the dict keys
+        data = data[1]
+        data = list(data.values())
 
         # The VIA tool saves images in the JSON even if they don't have any
         # annotations. Skip unannotated images.

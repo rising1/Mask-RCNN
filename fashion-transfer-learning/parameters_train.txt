@@ -2,4 +2,4 @@ train
 --dataset
 ./fashion/
 --weights
-C:/Users/phfro/PycharmProjects/Mask-RCNN/mask_rcnn_coco.h5
+C:\Users\phfro\PycharmProjects\Mask-RCNN\fashion-transfer-learning\Fashion_mask_rcnn_trained.h5
