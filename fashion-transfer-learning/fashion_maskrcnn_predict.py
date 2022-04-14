@@ -46,11 +46,15 @@ vs = cv2.VideoCapture(0)
 #cv2.namedWindow(SCREEN_NAME, cv2.WINDOW_NORMAL)
 #cv2.setWindowProperty(SCREEN_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 # Capture frame-by-frame
+
 while True:
+
 #    if OPTIMIZE_CAM:
 #        frame = vs.read()
 #    else:
     grabbed, frame = vs.read()
+
+    frame = cv2.resize(frame, (640, 480))
 #    if not grabbed:
 #        break
 
@@ -62,27 +66,28 @@ while True:
     results = model.detect([frame])
     r = results[0]
 # Run detection
-    masked_image = mrcnn.visualize.display_instances(frame, r['rois'], r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
+#    masked_image = mrcnn.visualize.display_instances(frame, r['rois'],
+#       r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
 
 #if PROCESS_IMG:
-    s = masked_image
+#    s = masked_image
 #else:
-#    s = frame
+    s = frame
 
 
 # Display the frame
-    s = cv2.resize(s, (640, 480))
+
     cv2.imshow("test", s)
 #cv2.waitKey(100)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(100) & 0xFF == ord('q'):
         break
 
 # When everything is done, release the camera from video capture
 #if OPTIMIZE_CAM:
 #    vs.stop()
 #else:
-#    vs.release()
-#cv2.destroyAllWindows()
+vs.release()
+cv2.destroyAllWindows()
 
 
 
