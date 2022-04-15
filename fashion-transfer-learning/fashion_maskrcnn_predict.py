@@ -4,6 +4,7 @@ import mrcnn.model
 import mrcnn.visualize
 import cv2
 import os
+import visualize
 import time
 from imutils.video import WebcamVideoStream
 # load the class label names from disk, one label per line
@@ -29,8 +30,8 @@ model = mrcnn.model.MaskRCNN(mode="inference",
                              model_dir=os.getcwd())
 
 # Load the weights into the model.
-model.load_weights(filepath="Fashion_mask_rcnn_trained.h5",
-                   by_name=True)
+model.load_weights(filepath="Fashion_mask_rcnn_trained.h5",by_name=True)
+#model.load_weights(filepath="C:\\Users\\phfro\\PycharmProjects\\Mask-RCNN\\kangaroo-transfer-learning\\Kangaro_mask_rcnn_trained.h5",by_name=True)
 
 # load the input image, convert it from BGR to RGB channel
 #frame = cv2.imread("C:\\Users\\phfro\\PycharmProjects\Mask-RCNN\\fashion-transfer-learning\\fashion\\test.jpg")
@@ -50,11 +51,12 @@ vs = cv2.VideoCapture(0)
 while True:
 
 #    if OPTIMIZE_CAM:
-#        frame = vs.read()
+#frame = vs.read()
 #    else:
     grabbed, frame = vs.read()
 
-    frame = cv2.resize(frame, (640, 480))
+    #frame = cv2.resize(frame, (640, 480))
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 #    if not grabbed:
 #        break
 
@@ -66,28 +68,30 @@ while True:
     results = model.detect([frame])
     r = results[0]
 # Run detection
-#    masked_image = mrcnn.visualize.display_instances(frame, r['rois'],
-#       r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
-
+#masked_image = mrcnn.visualize.display_instances(frame, r['rois'],
+#      r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
+    masked_image = mrcnn.visualize.get_masked_image(frame, r['rois'],
+      r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
+    frame = cv2.resize(frame, (640, 480))
 #if PROCESS_IMG:
-#    s = masked_image
-#else:
-    s = frame
+    if not masked_image is None:
+        s = masked_image
+    else:
+        s = frame
 
 
 # Display the frame
 
     cv2.imshow("test", s)
-#cv2.waitKey(100)
-    if cv2.waitKey(100) & 0xFF == ord('q'):
-        break
+    if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
 
 # When everything is done, release the camera from video capture
 #if OPTIMIZE_CAM:
 #    vs.stop()
 #else:
-vs.release()
-cv2.destroyAllWindows()
+#vs.release()
+#cv2.destroyAllWindows()
 
 
 
