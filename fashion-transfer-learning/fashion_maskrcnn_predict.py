@@ -57,6 +57,7 @@ while True:
 
     #frame = cv2.resize(frame, (640, 480))
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#    frame = cv2.resize(frame, (640, 480))
 #    if not grabbed:
 #        break
 
@@ -72,7 +73,7 @@ while True:
 #      r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
     masked_image = mrcnn.visualize.get_masked_image(frame, r['rois'],
       r['masks'],r['class_ids'], CLASS_NAMES, r['scores'])
-    frame = cv2.resize(frame, (640, 480))
+
 #if PROCESS_IMG:
     if not masked_image is None:
         s = masked_image
@@ -81,7 +82,7 @@ while True:
 
 
 # Display the frame
-
+    s = cv2.resize(s, (800, 600))
     cv2.imshow("test", s)
     if cv2.waitKey(10) & 0xFF == ord('q'):
             break
